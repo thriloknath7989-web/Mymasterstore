@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>MASTER STORE - Direct Buy - No Commission</title>
+<style>
+*{box-sizing:border-box}body{font-family:Inter,sans-serif;margin:0;background:#f8fafc}
+.header{background:black;color:white;padding:15px;text-align:center;position:sticky;top:0;z-index:10}
+.header a{color:#22c55e;text-decoration:none;font-weight:bold}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:15px;padding:15px;max-width:1200px;margin:auto}
+.pcard{background:white;border-radius:16px;overflow:hidden;box-shadow:0 4px 15px #0001;transition:.2s}
+.pcard:hover{transform:translateY(-5px)}
+.pcard img{width:100%;height:180px;object-fit:cover;background:#eee}
+.pbody{padding:15px}
+.price{font-size:22px;font-weight:900;color:#16a34a}
+.btn{width:100%;padding:12px;border:0;border-radius:10px;font-weight:bold;cursor:pointer;margin-top:8px}
+.btn-buy{background:black;color:white}
+.btn-demo{background:#eef2ff;color:#4338ca}
+.badge{display:inline-block;padding:4px 8px;border-radius:20px;font-size:11px;background:#dcfce7;color:#166534;margin-bottom:5px}
+.admin{display:none;max-width:750px;margin:20px auto;background:white;padding:20px;border-radius:12px}
+input,select,textarea{width:100%;padding:12px;margin:8px 0;border:1px solid #ddd;border-radius:8px}
+.hidden{display:none}
+</style>
+</head>
+<body>
+<div class="header">
+<h2 style="margin:0">🚀 MASTER STORE</h2>
+<p style="margin:5px 0">Direct From Creator - No Commission - 100% Premium | <span id="count">0 Products</span></p>
+<div id="custView"><a href="?admin=thrilok2914">Admin Login</a></div>
+<div id="adminView" style="display:none"><a href="/">← Back to Store</a></div>
+</div>
+
+<!-- CUSTOMER STORE -->
+<div id="store" class="grid"></div>
+
+<!-- ADMIN PANEL - only ?admin=thrilok2914 tho open avutundi -->
+<div id="admin" class="admin">
+<h2>🔥 MASTER FEED - Admin</h2>
+<select id="type" onchange="changeType()">
+  <option value="">-- Select Type --</option>
+  <option value="digital_card">Digital Card / Bio Link</option>
+  <option value="game">Game (HTML5)</option>
+  <option value="pwa">PWA App</option>
+  <option value="website">Website / Template</option>
+  <option value="apk">APK / AAB</option>
+  <option value="api">API Service</option>
+  <option value="firefox_addon">Firefox Add-on</option>
+</select>
+<input id="name" placeholder="Product Name">
+<textarea id="desc" placeholder="Full Description - Akkada ikkada kanipistundi, ikkada nee main store link auto ga add avutundi"></textarea>
+<input id="price" type="number" placeholder="Price in $">
+<div id="field-link"><input id="link" placeholder="Live Demo Link"></div>
+<div id="field-code" class="hidden"><input id="code" placeholder="Source Code Drive Link"></div>
+<div id="field-apk" class="hidden"><input id="apk" placeholder="APK Drive Link"></div>
+<div id="field-api" class="hidden"><input id="api" placeholder="API Endpoint"></div>
+<input id="shots" placeholder="Screenshot Links (comma)">
+<input id="video" placeholder="Youtube Video Link">
+<input id="docs" placeholder="Docs Link">
+<button onclick="save()" style="background:black;color:white;padding:15px;width:100%">💾 SAVE TO MASTER FEED</button>
+<button onclick="pushAll()" style="background:#16a34a;color:white;padding:15px;width:100%;margin-top:10px">🚀 PUSH TO ALL 6 PLATFORMS (1-Click)</button>
+<p id="status"></p>
+<p>Feed: <a href="/feed" target="_blank">/feed</a></p>
+</div>
+
+<script>
+const isAdmin = new URLSearchParams(location.search).get('admin')==='siva2026';
+if(isAdmin){ document.getElementById('admin').style.display='block'; document.getElementById('store').style.display='none'; document.getElementById('custView').style.display='none'; document.getElementById('adminView').style.display='block'; }
+
+function changeType(){
+  let t=type.value;
+  document.getElementById('field-link').className = (t=='website'||t=='pwa'||t=='digital_card'||t=='game')?'':'hidden';
+  document.getElementById('field-code').className = (t=='website'||t=='pwa')?'':'hidden';
+  document.getElementById('field-apk').className = (t=='apk')?'':'hidden';
+  document.getElementById('field-api').className = (t=='api'||t=='firefox_addon')?'':'hidden';
+}
+
+async function loadStore(){
+  try{
+    let r=await fetch('/feed'); let products=await r.json();
+    if(!Array.isArray(products)) products=[];
+    document.getElementById('count').innerText = products.length+' Products Live';
+    document.getElementById('store').innerHTML = products.length ? products.map(p=>`
+      <div class="pcard">
+        <img src="${p.shots? p.shots.split(',')[0].trim() : 'https://via.placeholder.com/400x200?text='+encodeURIComponent(p.name)}" onerror="this.src='https://via.placeholder.com/400x200?text=No+Image'">
+        <div class="pbody">
+          <span class="badge">${p.type.toUpperCase()}</span>
+          <h3 style="margin:5px 0">${p.name}</h3>
+          <p style="font-size:13px;color:#64748b;height:40px;overflow:hidden">${p.desc.slice(0,90)}...</p>
+          <div class="price">$${p.price}</div>
+          <button class="btn btn-demo" onclick="window.open('${p.link}','_blank')">👁️ Live Demo</button>
+          <button class="btn btn-buy" onclick="buy('${p.name}','${p.price}')">🛒 BUY NOW - Direct (No Commission)</button>
+          <p style="font-size:11px;color:#94a3b8;margin-top:8px">Also Available on Gumroad, RapidAPI, LemonSqueezy, Firefox, Shopify</p>
+        </div>
+      </div>
+    `).join('') : '<h3 style="padding:20px">No Products Yet - Admin Add Cheyali</h3>';
+  }catch(e){ document.getElementById('store').innerHTML='Feed not ready - /feed check chey'; }
+}
+function buy(name,price){ alert('Direct Sale! '+name+' - $'+price+'\n\nWhatsApp / UPI / PayPal tho direct payment tisuko masa! 100% neeke!'); }
+async function save(){
+  let product={type:type.value,name:name.value,desc:desc.value+' | More Products: https://mymasterstore.pages.dev - Direct Buy No Commission!',price:price.value,link:link.value,code:code.value,apk:apk.value,api:api.value,shots:shots.value,video:video.value,docs:docs.value,id:Date.now()};
+  if(!product.type||!product.name||!product.price){alert("Type, Name, Price compulsory!");return}
+  let r=await fetch('/feed',{method:'POST',body:JSON.stringify(product)}); let j=await r.json();
+  status.innerText="✅ Saved! Total: "+j.total; loadStore();
+}
+async function pushAll(){
+  status.innerText="⏳ Pushing to 6 platforms..."; let r=await fetch('/api/push-all',{method:'POST'}); let d=await r.json();
+  alert('Pushed! '+(d.logs?d.logs.join(', '):d.product)); status.innerText="🚀 Pushed: "+d.product;
+}
+loadStore();
+</script>
+</body>
+</html>
