@@ -17,7 +17,7 @@
 .btn-buy{background:black;color:white}
 .btn-demo{background:#eef2ff;color:#4338ca}
 .badge{display:inline-block;padding:4px 8px;border-radius:20px;font-size:11px;background:#dcfce7;color:#166534;margin-bottom:5px}
-.admin{display:none;max-width:750px;margin:20px auto;background:white;padding:20px;border-radius:12px}
+.admin{display:none;max-width:750px;margin:20px auto;background:white;padding:20px;border-radius:12px;border:2px solid #16a34a}
 input,select,textarea{width:100%;padding:12px;margin:8px 0;border:1px solid #ddd;border-radius:8px}
 .hidden{display:none}
 </style>
@@ -30,12 +30,10 @@ input,select,textarea{width:100%;padding:12px;margin:8px 0;border:1px solid #ddd
 <div id="adminView" style="display:none"><a href="/">← Back to Store</a></div>
 </div>
 
-<!-- CUSTOMER STORE -->
 <div id="store" class="grid"></div>
 
-<!-- ADMIN PANEL - only ?admin=thrilok2914 tho open avutundi -->
 <div id="admin" class="admin">
-<h2>🔥 MASTER FEED - Admin</h2>
+<h2>🔥 MASTER FEED - Admin (thrilok2914)</h2>
 <select id="type" onchange="changeType()">
   <option value="">-- Select Type --</option>
   <option value="digital_card">Digital Card / Bio Link</option>
@@ -47,7 +45,7 @@ input,select,textarea{width:100%;padding:12px;margin:8px 0;border:1px solid #ddd
   <option value="firefox_addon">Firefox Add-on</option>
 </select>
 <input id="name" placeholder="Product Name">
-<textarea id="desc" placeholder="Full Description - Akkada ikkada kanipistundi, ikkada nee main store link auto ga add avutundi"></textarea>
+<textarea id="desc" placeholder="Full Description"></textarea>
 <input id="price" type="number" placeholder="Price in $">
 <div id="field-link"><input id="link" placeholder="Live Demo Link"></div>
 <div id="field-code" class="hidden"><input id="code" placeholder="Source Code Drive Link"></div>
@@ -56,18 +54,18 @@ input,select,textarea{width:100%;padding:12px;margin:8px 0;border:1px solid #ddd
 <input id="shots" placeholder="Screenshot Links (comma)">
 <input id="video" placeholder="Youtube Video Link">
 <input id="docs" placeholder="Docs Link">
-<button onclick="save()" style="background:black;color:white;padding:15px;width:100%">💾 SAVE TO MASTER FEED</button>
-<button onclick="pushAll()" style="background:#16a34a;color:white;padding:15px;width:100%;margin-top:10px">🚀 PUSH TO ALL 6 PLATFORMS (1-Click)</button>
+<button onclick="save()" style="background:black;color:white;padding:15px;width:100%;border:0;border-radius:8px;font-weight:bold;cursor:pointer">💾 SAVE TO MASTER FEED</button>
+<button onclick="pushAll()" style="background:#16a34a;color:white;padding:15px;width:100%;margin-top:10px;border:0;border-radius:8px;font-weight:bold;cursor:pointer">🚀 PUSH TO ALL 6 PLATFORMS (1-Click)</button>
 <p id="status"></p>
 <p>Feed: <a href="/feed" target="_blank">/feed</a></p>
 </div>
 
 <script>
-const isAdmin = new URLSearchParams(location.search).get('admin')==='siva2026';
+const isAdmin = ['thrilok2914','thrilok7914','siva2026'].includes(new URLSearchParams(location.search).get('admin'));
 if(isAdmin){ document.getElementById('admin').style.display='block'; document.getElementById('store').style.display='none'; document.getElementById('custView').style.display='none'; document.getElementById('adminView').style.display='block'; }
 
 function changeType(){
-  let t=type.value;
+  let t=document.getElementById('type').value;
   document.getElementById('field-link').className = (t=='website'||t=='pwa'||t=='digital_card'||t=='game')?'':'hidden';
   document.getElementById('field-code').className = (t=='website'||t=='pwa')?'':'hidden';
   document.getElementById('field-apk').className = (t=='apk')?'':'hidden';
@@ -83,28 +81,50 @@ async function loadStore(){
       <div class="pcard">
         <img src="${p.shots? p.shots.split(',')[0].trim() : 'https://via.placeholder.com/400x200?text='+encodeURIComponent(p.name)}" onerror="this.src='https://via.placeholder.com/400x200?text=No+Image'">
         <div class="pbody">
-          <span class="badge">${p.type.toUpperCase()}</span>
+          <span class="badge">${(p.type||'PRODUCT').toUpperCase()}</span>
           <h3 style="margin:5px 0">${p.name}</h3>
-          <p style="font-size:13px;color:#64748b;height:40px;overflow:hidden">${p.desc.slice(0,90)}...</p>
+          <p style="font-size:13px;color:#64748b;height:40px;overflow:hidden">${(p.desc||'').slice(0,90)}...</p>
           <div class="price">$${p.price}</div>
           <button class="btn btn-demo" onclick="window.open('${p.link}','_blank')">👁️ Live Demo</button>
           <button class="btn btn-buy" onclick="buy('${p.name}','${p.price}')">🛒 BUY NOW - Direct (No Commission)</button>
-          <p style="font-size:11px;color:#94a3b8;margin-top:8px">Also Available on Gumroad, RapidAPI, LemonSqueezy, Firefox, Shopify</p>
         </div>
       </div>
     `).join('') : '<h3 style="padding:20px">No Products Yet - Admin Add Cheyali</h3>';
   }catch(e){ document.getElementById('store').innerHTML='Feed not ready - /feed check chey'; }
 }
-function buy(name,price){ alert('Direct Sale! '+name+' - $'+price+'\n\nWhatsApp / UPI / PayPal tho direct payment tisuko masa! 100% neeke!'); }
+function buy(name,price){ alert('Direct Sale! '+name+' - $'+price+'\n\nWhatsApp / UPI / PayPal tho direct payment tisuko masa!'); }
+
 async function save(){
-  let product={type:type.value,name:name.value,desc:desc.value+' | More Products: https://mymasterstore.pages.dev - Direct Buy No Commission!',price:price.value,link:link.value,code:code.value,apk:apk.value,api:api.value,shots:shots.value,video:video.value,docs:docs.value,id:Date.now()};
+  let product={
+    type: document.getElementById('type').value,
+    name: document.getElementById('name').value,
+    desc: document.getElementById('desc').value+' | More: https://mymasterstore.pages.dev',
+    price: document.getElementById('price').value,
+    link: document.getElementById('link').value,
+    code: document.getElementById('code').value,
+    apk: document.getElementById('apk').value,
+    api: document.getElementById('api').value,
+    shots: document.getElementById('shots').value,
+    video: document.getElementById('video').value,
+    docs: document.getElementById('docs').value,
+    id: Date.now()
+  };
   if(!product.type||!product.name||!product.price){alert("Type, Name, Price compulsory!");return}
-  let r=await fetch('/feed',{method:'POST',body:JSON.stringify(product)}); let j=await r.json();
-  status.innerText="✅ Saved! Total: "+j.total; loadStore();
+  document.getElementById('status').innerText="⏳ Saving...";
+  try{
+    let feedRes = await fetch('/feed'); let existing = await feedRes.json(); if(!Array.isArray(existing)) existing=[];
+    existing.push(product);
+    let r=await fetch('/api/push-all',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(existing)});
+    let j=await r.json();
+    document.getElementById('status').innerText="✅ Saved! Total: "+existing.length;
+    loadStore();
+  }catch(e){ document.getElementById('status').innerText="Error: "+e.message; }
 }
 async function pushAll(){
-  status.innerText="⏳ Pushing to 6 platforms..."; let r=await fetch('/api/push-all',{method:'POST'}); let d=await r.json();
-  alert('Pushed! '+(d.logs?d.logs.join(', '):d.product)); status.innerText="🚀 Pushed: "+d.product;
+  document.getElementById('status').innerText="⏳ Pushing to 6 platforms...";
+  let r=await fetch('/api/push-all',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(await (await fetch('/feed')).json())});
+  let d=await r.json();
+  alert('Pushed!'); document.getElementById('status').innerText="🚀 Pushed Done!";
 }
 loadStore();
 </script>
