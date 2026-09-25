@@ -1,16 +1,45 @@
-export async function onRequestPost(c){
-  const env = c.env;
-  const products = await env.MASTER_KV.get("master_feed",{type:"json"}) || [];
-  const p = products[0];
-  if(!p) return new Response(JSON.stringify({error:"No product to push"}),{headers:{"Content-Type":"application/json"}});
+export async function onRequestPost(context) {
+  try {
+    const kv = context.env.MASTER_KV;
+    const body = await context.request.json();
+    
+    if (Array.isArray(body)) {
+      // Admin nundi full feed vasthe direct save
+      await kv.put("master_feed", JSON.stringify(body));
+      return new Response(JSON.stringify({success: true, total: body.length, product: "All Products Saved"}), {
+        headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" }
+      });
+    } else {
+      // Single product vasthe
+      let existing = await kv.get("master_feed", "json") || [];
+      existing.unshift(body);
+      await kv.put("master_feed", JSON.stringify(existing));
+      return new Response(JSON.stringify({success: true, total: existing.length, product: body.name}), {
+        headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" }
+      });
+    }
+  } catch (e) {
+    return new Response(JSON.stringify({error: e.message}), { 
+      status: 500,
+      headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" }
+    });
+  }
+}
 
-  let logs = [];
-  try{
-    await fetch("https://api.gumroad.com/v2/products",{method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({access_token: env.GUMROAD_API_KEY, name: p.name, custom_summary: p.desc, price: Math.round(p.price*100)})});
-    logs.push("Gumroad: OK");
-  }catch(e){logs.push("Gumroad: Fail")}
+export async function onRequestGet(context) {
+  const kv = context.env.MASTER_KV;
+  let feed = await kv.get("master_feed", "json") || [];
+  return new Response(JSON.stringify(feed), {
+    headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" }
+  });
+}
 
-  logs.push("RapidAPI: OK","Lemon: OK","Firefox: OK","Shopify: OK");
-
-  return new Response(JSON.stringify({success:true, product: p.name, logs: logs}),{headers:{"Content-Type":"application/json"}});
+export async function onRequestOptions() {
+  return new Response(null, {
+    headers: {
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+      "Access-Control-Allow-Headers": "Content-Type"
+    }
+  });
 }
